@@ -1,11 +1,10 @@
 # %%
+
 import collections
 import requests
-import time
-import json
 
 
-class OXFORD_API():
+class OxfordAPI:
 
     def __init__(self, app_id, app_key, language='en-gb', fields='definitions,examples', strict=False):
         # init api with parameters
@@ -40,7 +39,7 @@ class OXFORD_API():
         return Word(response.json())
 
 
-class Word():
+class Word:
 
     def __init__(self, raw_text):
         self.raw_text = raw_text
@@ -73,8 +72,8 @@ def flatten(data):
     return obj
 
 
-app_id = "73629f11"
-app_key = "e3713b7c303a270fb1827a72a4c233b3"
-dictionary = OXFORD_API(app_id, app_key)
+id = "73629f11"
+key = "e3713b7c303a270fb1827a72a4c233b3"
+dictionary = OxfordAPI(id, key)
 
 word = dictionary.get('obverse')
