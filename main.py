@@ -1,8 +1,8 @@
 # %%
 
+import numpy as np
 import collections
 import requests
-
 
 class OxfordAPI:
 
@@ -50,8 +50,27 @@ class Word:
 
     @property
     def flattened_entries(self):
-        return [flatten(entry) for entry in self.entries]
-
+        return np.array([flatten(entry) for entry in self.entries])
+    
+    @property
+    def lexical_categories(self):
+        lexical_categories = []
+        for entry in self.flattened_entries:
+            for key, value in entry.items():
+                if 'lexicalCategory.id' in key:
+                    lexical_categories.append(value)
+        return lexical_categories
+    
+    @property
+    def definitions(self):
+        entries = []
+        for entry in self.flattened_entries:
+            definitions = []
+            for key, value in entry.items():
+                if 'definitions' in key:
+                    definitions.append({key: value})
+            entries.append(definitions)
+        return entries
 
 def flatten(data):
 
@@ -77,3 +96,19 @@ key = "e3713b7c303a270fb1827a72a4c233b3"
 dictionary = OxfordAPI(id, key)
 
 word = dictionary.get('obverse')
+
+# %%
+definitions = []
+for item in word.definitions[0]:
+    for key, value in item.items():
+        word = {}
+        if 'subsenses' in key:
+            word['subsenses'] = value
+            break
+        else:
+            word['definition'] = value
+        definitions.append(word)
+
+# %%
+print(definitions)
+# %%
