@@ -1,4 +1,4 @@
-from results import Word
+from word import Word
 import requests
 
 
