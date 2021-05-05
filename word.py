@@ -1,73 +1,78 @@
 class Word:
+    # class to hold word returned from the Oxford API
 
     def __init__(self, raw_text):
+        # init parameters of entry -- needs only a raw JSON object
         self.raw_text = raw_text
         self.entries = []
 
         try:
             self._parse()
-        except:
-            print('unable to parse word')
+        except KeyError:
+            print('Unable to parse word. Please debug.')
 
     def _parse(self):
 
         # iterate over results
-        for e in self.raw_text['results'][0]['lexicalEntries']:
+        for result in self.raw_text['results']:
 
-            # create and entry
-            entry = Entry(str(e['lexicalCategory']['id']))
+            # iterate over entry
+            for e in result['lexicalEntries']:
 
-            # # iterate over sense in entry
-            for s in e['entries'][0]['senses']:
+                # create and entry
+                entry = Entry(str(e['lexicalCategory']['id']))
 
-                # create sense object with supplementary information
-                sense = Sense(str(s['definitions'][0]))
-                sense.add_supplementary_information(s)
+                # # iterate over sense in entry
+                for s in e['entries'][0]['senses']:
 
-                # append to entry object
-                entry.append_sense(sense)
+                    # create sense object with supplementary information
+                    sense = Sense(str(s['definitions'][0]), s)
+                    entry.senses.append(sense)
 
-            self.entries.append(entry)
+                self.entries.append(entry)
 
 
 class Entry:
-    # class to hold an entry for a given word (organised under grammatical category)
+    # class to hold a sense for a given word organised under grammatical category
 
-    def __init__(self, lexical_category):
-        self.lexical_category = lexical_category
+    def __init__(self, grammatical_category):
+        # init parameters of entry -- needs only a grammatical_category
+
+        self.grammatical_category = grammatical_category
         self.senses = []
-
-    def append_sense(self, sense):
-        self.senses.append(sense)
 
 
 class Sense:
     # class to hold a given sense in an entry
 
-    def __init__(self, definition, domains=None, subsense=None, example=None, registers=None):
+    def __init__(self, definition, raw_information):
+        # init parameters of sense -- needs only a defintion and raw JSON object
+
         self.definition = definition
-        self.domains = domains
-        self.subsense = subsense
-        self.example = example
-        self.registers = registers
+        self.examples = []
+        self.domains = []
+        self.registers = []
+        self.subsenses = []
 
-    def add_supplementary_information(self, supplementary_information):
+        self._add_supplementary_information(raw_information)
 
-        # domain
-        if 'domains' in supplementary_information:
-            self.domains = [i['text'] for i in supplementary_information['domains']]
+    def _add_supplementary_information(self, raw_information):
+        # adds information supplementary to a given sense --
+        # may be extended to any of the various supplementary information provided by the Oxford API
 
-        # example
-        if 'examples' in supplementary_information:
-            self.example = str(
-                supplementary_information['examples'][0]['text'])
+        # domains
+        if 'domains' in raw_information:
+            self.domains = [i['text'] for i in raw_information['domains']]
+
+        # examples
+        if 'examples' in raw_information:
+            self.examples = [i['text'] for i in raw_information['examples']]
 
         # registers
-        if 'registers' in supplementary_information:
-            self.registers = [i['text'] for i in supplementary_information['registers']]
+        if 'registers' in raw_information:
+            self.registers = [i['text'] for i in raw_information['registers']]
 
-        # subsense
-        if 'subsenses' in supplementary_information:
-            self.subsense = str(
-                supplementary_information['subsenses'][0]['definitions'][0])
-
+        # subsenses
+        if 'subsenses' in raw_information:
+            self.subsenses = [Sense(i['definitions'][0], i)
+                              for i in raw_information['subsenses']]
